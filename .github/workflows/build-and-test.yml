@@ -69,7 +69,9 @@ jobs:
           cmake .. -DSET_REPLACE_BUILD_TESTING=ON -DSET_REPLACE_ENABLE_ALLWARNINGS=ON
           cmake --build .
       - name: Test
-        run: ./libSetReplaceTest.sh
+        env:
+          GITHUB_MATRIX_NODE: ${{ matrix.node }}
+        run: ./.github/workflows/test.sh
       - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
@@ -79,7 +81,7 @@ jobs:
   cpp-32-test:
     runs-on: ubuntu-latest
     container:
-      image: i386/alpine:3.13.5
+      image: alpine:3.13.5
     steps:
       - uses: actions/checkout@v3
       - name: Install Required Tools
@@ -104,26 +106,11 @@ jobs:
       matrix:
         node: [0, 1, 2, 3]
     container:
-      image: wolframresearch/wolframengine:13.0
+      image: wolframresearch/wolframengine:latest
       options: --user root
-    defaults:
-      run:
-        shell: bash
     steps:
       - uses: actions/checkout@v3
-        with:
-          # Add these options to ensure proper checkout in container
-          submodules: false
-          persist-credentials: false
       
-      # Install any additional tools needed for your CI
-      - name: Install additional tools
-        run: |
-          apt-get update && apt-get install -y \
-            git \
-            curl \
-            unzip
-
       - name: Download macOS libs
         uses: actions/download-artifact@v3
         with:
@@ -158,7 +145,9 @@ jobs:
         run: ./install.wls
         
       - name: Test
-        run: ./.circleci/test.sh
+        env:
+          GITHUB_MATRIX_NODE: ${{ matrix.node }}
+        run: ./.github/test.sh
         
       - name: Performance Test
         if: ${{ matrix.node == 0 }}
