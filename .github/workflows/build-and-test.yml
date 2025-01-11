@@ -1,0 +1,157 @@
+name: build-and-test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  macos-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install CMake
+        run: |
+          cmakeURL="https://github.com/Kitware/CMake/releases/download/v3.18.6/cmake-3.18.6-Darwin-x86_64.tar.gz"
+          curl -L --output cmake.tar.gz $cmakeURL
+          tar xf cmake.tar.gz
+          cmakeDir=$(ls | grep cmake-)
+          sudo cp -r $cmakeDir/CMake.app/Contents/bin/* /usr/local/bin/
+          sudo cp -r $cmakeDir/CMake.app/Contents/share/* /usr/local/share/
+      - name: Build arm64
+        run: scripts/buildLibraryResources.sh arm64
+      - name: Build x86_64
+        run: scripts/buildLibraryResources.sh x86_64
+      - name: Upload LibraryResources
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-lib
+          path: ./LibraryResources/
+
+  windows-build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - shell: bash
+        name: Install CMake
+        run: |
+          cmakeURL="https://github.com/Kitware/CMake/releases/download/v3.18.6/cmake-3.18.6-win64-x64.zip"
+          curl -L --output cmake.zip $cmakeURL
+          unzip -q cmake.zip
+          cmakeDir=$(ls -d cmake-*)
+          echo "export PATH=$(pwd)/$cmakeDir/bin:\$PATH" >> $GITHUB_ENV
+      - shell: bash
+        name: Build
+        run: scripts/buildLibraryResources.sh
+      - uses: actions/upload-artifact@v3
+        with:
+          name: windows-lib
+          path: ./LibraryResources/
+
+  cpp-test:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:3.13.5
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Required Tools
+        run: |
+          apk add --no-cache bash git g++ make cmake clang py-pip shellcheck grep npm
+          apk add --no-cache shfmt --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
+          pip install cpplint
+          npm install -g markdownlint-cli
+      - name: Lint
+        run: |
+          set +eo pipefail
+          ./lint.sh || (echo "Lint failed. Please run scripts/install_git_hooks.sh." && exit 1)
+      - name: Build
+        run: |
+          mkdir build && cd build
+          cmake .. -DSET_REPLACE_BUILD_TESTING=ON -DSET_REPLACE_ENABLE_ALLWARNINGS=ON
+          cmake --build .
+      - name: Test
+        run: ./libSetReplaceTest.sh
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: cpp-test-results
+          path: TestResults
+
+  cpp-32-test:
+    runs-on: ubuntu-latest
+    container:
+      image: i386/alpine:3.13.5
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Required Tools
+        run: apk add --no-cache bash git g++ make cmake
+      - name: Build
+        run: |
+          mkdir build && cd build
+          cmake .. -DSET_REPLACE_BUILD_TESTING=ON -DSET_REPLACE_ENABLE_ALLWARNINGS=ON
+          cmake --build .
+      - name: Test
+        run: ./libSetReplaceTest.sh
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: cpp-32-test-results
+          path: TestResults
+
+  wolfram-language-paclet-test:
+    needs: [macos-build, windows-build]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [0, 1, 2, 3]
+    container:
+      image: wolframresearch/wolframengine:latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      # Install any additional tools needed for your CI
+      - name: Install additional tools
+        run: |
+          apt-get update && apt-get install -y \
+            git \
+            curl \
+            unzip
+
+      - name: Download macOS libs
+        uses: actions/download-artifact@v3
+        with:
+          name: macos-lib
+          path: /tmp/workspace/macos
+          
+      - name: Download Windows libs
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-lib
+          path: /tmp/workspace/windows
+          
+      - name: Build
+        run: ./build.wls
+        
+      - name: Copy libraries
+        run: |
+          mkdir -p ./LibraryResources
+          cp -r /tmp/workspace/macos/LibraryResources/* ./LibraryResources || true
+          cp -r /tmp/workspace/windows/LibraryResources/* ./LibraryResources || true
+          
+      - name: Install
+        run: ./install.wls
+        
+      - name: Upload Paclets
+        uses: actions/upload-artifact@v3
+        with:
+          name: built-paclets
+          path: ./BuiltPaclets/
+          
+      - name: Reinstall
+        run: ./install.wls
+        
+      - name: Test
+        run: ./.circleci/test.sh
+        
+      - name: Performance Test
+        if: ${{ matrix.node == 0 }}
+        run: ./performanceTest.wls master HEAD 2
