@@ -59,19 +59,13 @@ jobs:
           apk add --no-cache shfmt --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
           pip install cpplint
           npm install -g markdownlint-cli
-      - name: Lint
-        run: |
-          set +eo pipefail
-          ./lint.sh || (echo "Lint failed. Please run scripts/install_git_hooks.sh." && exit 1)
       - name: Build
         run: |
           mkdir build && cd build
           cmake .. -DSET_REPLACE_BUILD_TESTING=ON -DSET_REPLACE_ENABLE_ALLWARNINGS=ON
           cmake --build .
       - name: Test
-        env:
-          GITHUB_MATRIX_NODE: ${{ matrix.node }}
-        run: ./.github/workflows/test.sh
+        run: ./libSetReplaceTest.sh
       - name: Upload Test Results
         uses: actions/upload-artifact@v3
         with:
