@@ -147,7 +147,7 @@ jobs:
       - name: Test
         env:
           GITHUB_MATRIX_NODE: ${{ matrix.node }}
-        run: ./.github/test.sh
+        run: ./.github/workflows/test.sh
         
       - name: Performance Test
         if: ${{ matrix.node == 0 }}
