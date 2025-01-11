@@ -104,9 +104,17 @@ jobs:
       matrix:
         node: [0, 1, 2, 3]
     container:
-      image: wolframresearch/wolframengine:latest
+      image: wolframresearch/wolframengine:13.0
+      options: --user root
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v3
+        with:
+          # Add these options to ensure proper checkout in container
+          submodules: false
+          persist-credentials: false
       
       # Install any additional tools needed for your CI
       - name: Install additional tools
