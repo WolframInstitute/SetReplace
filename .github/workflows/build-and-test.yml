@@ -111,6 +111,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
+      - name: Activate Wolfram Engine
+        env:
+          WOLFRAM_ID: ${{ secrets.WOLFRAM_ID }}
+          WOLFRAM_PW: ${{ secrets.WOLFRAM_PASSWORD }}
+        run: |
+          wolframscript -activate -username $WOLFRAM_ID -password $WOLFRAM_PW
+          
       - name: Download macOS libs
         uses: actions/download-artifact@v3
         with:
