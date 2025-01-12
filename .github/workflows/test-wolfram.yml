@@ -19,7 +19,6 @@ jobs:
       
       - name: Test Wolfram Engine
         run: |
-          wolframscript -activate -username ${{ secrets.WOLFRAM_ID }} -password ${{ secrets.WOLFRAM_PASSWORD }}
           wolframscript -code "Print[\"Test: \" <> ToString[2 + 2]]"
           wolframscript -code "Print[\"System: \" <> $SystemID]" 
 
