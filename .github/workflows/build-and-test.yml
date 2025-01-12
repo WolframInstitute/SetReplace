@@ -114,6 +114,11 @@ jobs:
           apt-get update
           apt-get install -y build-essential cmake git curl unzip
 
+      - name: Activate Wolfram Engine
+        run: |
+          wolframscript -activate -username ${{ secrets.WOLFRAM_ID }} -password ${{ secrets.WOLFRAM_PASSWORD }} || true
+          wolframscript -code 'Print["Activation check: ", $Version]' || true
+
       - name: Download macOS libs
         uses: actions/download-artifact@v3
         with:
@@ -134,10 +139,7 @@ jobs:
           mkdir -p ./LibraryResources
           cp -r /tmp/workspace/macos/LibraryResources/* ./LibraryResources || true
           cp -r /tmp/workspace/windows/LibraryResources/* ./LibraryResources || true
-          
-      - name: Activate Wolfram Engine
-        run: wolframscript -activate -username ${{ secrets.WOLFRAM_ID }} -password ${{ secrets.WOLFRAM_PASSWORD }}
-
+        
       - name: Install GitLink
         run: wolframscript -code 'PacletInstall["Wolfram/GitLink"]'
 
