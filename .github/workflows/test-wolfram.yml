@@ -17,6 +17,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Test paclet
+        uses: WolframResearch/test-paclet@v1
+      
       - name: Test Wolfram Engine
         run: |
           wolframscript -code "Print[\"Test: \" <> ToString[2 + 2]]"
