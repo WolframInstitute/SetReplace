@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Test paclet
-        uses: WolframResearch/test-paclet@v1
+        uses: WolframResearch/test-paclet@v1.11.0
       
       - name: Test Wolfram Engine
         run: |
