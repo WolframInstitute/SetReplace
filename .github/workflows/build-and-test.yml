@@ -102,16 +102,11 @@ jobs:
     container:
       image: wolframresearch/wolframengine:latest
       options: --user root
+    env:
+      WOLFRAMSCRIPT_ENTITLEMENTID: ${{ secrets.WOLFRAMSCRIPT_ENTITLEMENTID }}
     steps:
       - uses: actions/checkout@v3
       
-      - name: Activate Wolfram Engine
-        env:
-          WOLFRAM_ID: ${{ secrets.WOLFRAM_ID }}
-          WOLFRAM_PW: ${{ secrets.WOLFRAM_PASSWORD }}
-        run: |
-          wolframscript -activate -username $WOLFRAM_ID -password $WOLFRAM_PW
-          
       - name: Download macOS libs
         uses: actions/download-artifact@v3
         with:
@@ -148,7 +143,7 @@ jobs:
       - name: Test
         env:
           GITHUB_MATRIX_NODE: ${{ matrix.node }}
-        run: ./.github/workflows/test.sh
+        run: ./.github/workflows/test.sh # This assumes parallelism: 4 and would not run all tests otherwise
         
       - name: Performance Test
         if: ${{ matrix.node == 0 }}
