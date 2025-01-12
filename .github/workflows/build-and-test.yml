@@ -140,9 +140,6 @@ jobs:
           cp -r /tmp/workspace/macos/LibraryResources/* ./LibraryResources || true
           cp -r /tmp/workspace/windows/LibraryResources/* ./LibraryResources || true
         
-      - name: Install GitLink
-        run: wolframscript -code 'PacletInstall["Wolfram/GitLink"]'
-
       - name: Install
         run: ./install.wls
         

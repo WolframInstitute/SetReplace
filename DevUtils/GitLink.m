@@ -32,7 +32,7 @@ GitSHAWithDirtyStar[repositoryDirectory_] /; TrueQ[$GitLinkAvailableQ] := Module
   If[cleanQ, sha, sha <> "*"]
 ];
 
-GitSHAWithDirtyStar[_] /; FalseQ[$GitLinkAvailableQ] := Missing["NotAvailable"];
+GitSHAWithDirtyStar[_] /; FalseQ[$GitLinkAvailableQ] := "NotAvailable";
 
 SyntaxInformation[InstallGitLink] = {"ArgumentsPattern" -> {}};
 
@@ -40,8 +40,24 @@ SetUsage @ "
 InstallGitLink[] will attempt to install GitLink on the current system (if necessary).
 ";
 
-InstallGitLink[] := If[PacletFind["GitLink", "Internal" -> All] === {},
-  PacletInstall["Wolfram/GitLink"];
+InstallGitLink[] := ModuleScope[
+  If[PacletFind["GitLink", "Internal" -> All] =!= {}, Return[True]];
+  
+  (* Try multiple installation methods *)
+  result = Quiet[
+    PacletInstall["GitLink"], (* Try direct installation first *)
+    {PacletInstall::notavail}
+  ];
+  If[!FailureQ[result], Return[True]];
+  
+  result = Quiet[
+    PacletInstall["Wolfram/GitLink"], (* Try with Wolfram prefix *)
+    {PacletInstall::notavail}
+  ];
+  If[!FailureQ[result], Return[True]];
+  
+  (* If all installation attempts fail, return False but don't error *)
+  False
 ];
 
 SyntaxInformation[CalculateMinorVersionNumber] = {"ArgumentsPattern" -> {repositoryDirectory_, masterBranch_}};
