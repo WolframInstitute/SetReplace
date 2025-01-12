@@ -8,6 +8,9 @@ Check[
   Exit[1];
 ];
 
+(* Turn off the GitLink warning since we handle it gracefully *)
+Off[PackSetReplace::nogitlink];
+
 Check[
   (* Try to install GitLink but don't fail if it doesn't work *)
   If[!InstallGitLink[],
