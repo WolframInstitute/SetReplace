@@ -55,7 +55,7 @@ PackSetReplace[OptionsPattern[]] := ModuleScope[
   ,
     Message[PackSetReplace::nogitlink];
     pacletInfoFile = FileNameJoin[{sourceDirectory, "PacletInfo.m"}];
-    gitSHA = Missing["GitLinkNotAvailable"];
+    gitSHA = "GitLinkNotAvailable";
   ];
 
   buildInfo = <|"GitSHA" -> gitSHA, "BuildTime" -> Round[DateList[TimeZone -> "UTC"]]|>;

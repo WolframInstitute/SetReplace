@@ -41,7 +41,7 @@ InstallGitLink[] will attempt to install GitLink on the current system (if neces
 ";
 
 InstallGitLink[] := If[PacletFind["GitLink", "Internal" -> All] === {},
-  PacletInstall["https://www.wolframcloud.com/obj/maxp1/GitLink-2019.11.26.01.paclet"];
+  PacletInstall["Wolfram/GitLink"];
 ];
 
 SyntaxInformation[CalculateMinorVersionNumber] = {"ArgumentsPattern" -> {repositoryDirectory_, masterBranch_}};
