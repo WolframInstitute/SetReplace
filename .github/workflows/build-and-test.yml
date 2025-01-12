@@ -106,6 +106,8 @@ jobs:
       options: --user root
     env:
       WOLFRAMSCRIPT_ENTITLEMENTID: ${{ secrets.WOLFRAMSCRIPT_ENTITLEMENTID }}
+      WOLFRAM_ID: ${{ secrets.WOLFRAM_ID }}
+      WOLFRAM_PASSWORD: ${{ secrets.WOLFRAM_PASSWORD }}
     steps:
       - uses: actions/checkout@v3
       
@@ -116,7 +118,7 @@ jobs:
 
       - name: Activate Wolfram Engine
         run: |
-          wolframscript -activate -username ${{ secrets.WOLFRAM_ID }} -password ${{ secrets.WOLFRAM_PASSWORD }} || true
+          wolframscript -activate -username "$WOLFRAM_ID" -password "$WOLFRAM_PASSWORD" || true
           wolframscript -code 'Print["Activation check: ", $Version]' || true
 
       - name: Download macOS libs
@@ -143,14 +145,15 @@ jobs:
       - name: Install
         run: ./install.wls
         
-      - name: Upload Paclets
-        uses: actions/upload-artifact@v3
-        with:
-          name: built-paclets
-          path: ./BuiltPaclets/
+      ## TODO: Uncomment this once official paclet
+      # - name: Upload Paclets
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: built-paclets
+      #     path: ./BuiltPaclets/
           
-      - name: Reinstall
-        run: ./install.wls
+      # - name: Reinstall
+      #   run: ./install.wls
         
       - name: Test
         env:
