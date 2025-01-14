@@ -32,7 +32,21 @@ GitSHAWithDirtyStar[repositoryDirectory_] /; TrueQ[$GitLinkAvailableQ] := Module
   If[cleanQ, sha, sha <> "*"]
 ];
 
-GitSHAWithDirtyStar[_] /; FalseQ[$GitLinkAvailableQ] := "NotAvailable";
+GitSHAWithDirtyStar[repositoryDirectory_] /; FalseQ[$GitLinkAvailableQ] := ModuleScope[
+  (* Get SHA using command line git *)
+  shaResult = RunProcess[{"git", "-C", repositoryDirectory, "rev-parse", "HEAD"}, ProcessDirectory -> repositoryDirectory];
+  If[shaResult["ExitCode"] =!= 0, Return["NotAvailable"]];
+  sha = StringTrim[shaResult["StandardOutput"]];
+  
+  (* Check if working tree is clean *)
+  statusResult = RunProcess[{"git", "-C", repositoryDirectory, "status", "--porcelain"}, ProcessDirectory -> repositoryDirectory];
+  If[statusResult["ExitCode"] =!= 0, Return[sha]];
+  cleanQ = statusResult["StandardOutput"] === "";
+  
+  If[cleanQ, sha, sha <> "*"]
+];
+
+GitSHAWithDirtyStar[_] := "NotAvailable";
 
 SyntaxInformation[InstallGitLink] = {"ArgumentsPattern" -> {}};
 
